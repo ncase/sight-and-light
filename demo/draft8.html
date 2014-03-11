@@ -153,18 +153,25 @@ function draw(){
 
 	// Sight Polygons
 	var fuzzyRadius = 10;
-	var polygons = [getSightPolygon(Mouse.x,Mouse.y)];
+	var polygons = [
+		getSightPolygon(20,Mouse.y),
+		getSightPolygon(820,360-Mouse.y)
+	];
 	for(var angle=0;angle<Math.PI*2;angle+=(Math.PI*2)/10){
 		var dx = Math.cos(angle)*fuzzyRadius;
 		var dy = Math.sin(angle)*fuzzyRadius;
-		polygons.push(getSightPolygon(Mouse.x+dx,Mouse.y+dy));
+		polygons.push(
+			getSightPolygon(20+dx,Mouse.y+dy),
+			getSightPolygon(820+dx,360-Mouse.y+dy)
+		);
 	};
 
 	// DRAW AS A GIANT POLYGON
-	for(var i=1;i<polygons.length;i++){
+	for(var i=2;i<polygons.length;i++){
 		drawPolygon(polygons[i],ctx,"rgba(255,255,255,0.2)");
 	}
 	drawPolygon(polygons[0],ctx,"#fff");
+	drawPolygon(polygons[1],ctx,"#fff");
 
 	// Masked Foreground
 	ctx.globalCompositeOperation = "source-in";
@@ -174,13 +181,19 @@ function draw(){
 	// Draw dots
 	ctx.fillStyle = "#fff";
 	ctx.beginPath();
-    ctx.arc(Mouse.x, Mouse.y, 2, 0, 2*Math.PI, false);
+    ctx.arc(20, Mouse.y, 2, 0, 2*Math.PI, false);
+    ctx.fill();
+	ctx.beginPath();
+    ctx.arc(820, 360-Mouse.y, 2, 0, 2*Math.PI, false);
     ctx.fill();
 	for(var angle=0;angle<Math.PI*2;angle+=(Math.PI*2)/10){
 		var dx = Math.cos(angle)*fuzzyRadius;
 		var dy = Math.sin(angle)*fuzzyRadius;
 		ctx.beginPath();
-    	ctx.arc(Mouse.x+dx, Mouse.y+dy, 2, 0, 2*Math.PI, false);
+    	ctx.arc(20+dx, Mouse.y+dy, 2, 0, 2*Math.PI, false);
+    	ctx.fill();
+		ctx.beginPath();
+    	ctx.arc(820+dx, 360-Mouse.y+dy, 2, 0, 2*Math.PI, false);
     	ctx.fill();
     }
 

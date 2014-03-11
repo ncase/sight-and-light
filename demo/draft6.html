@@ -121,6 +121,7 @@ function getSightPolygon(sightX,sightY){
 		}
 
 		// Intersect angle
+		if(!closestIntersect) continue;
 		closestIntersect.angle = angle;
 
 		// Add to list of intersects
@@ -159,21 +160,32 @@ function draw(){
 	}
 
 	// Sight Polygons
-	var fuzz = 5;
-	var polygons = [
-		getSightPolygon(Mouse.x,Mouse.y),
-		getSightPolygon(Mouse.x+fuzz,Mouse.y),
-		getSightPolygon(Mouse.x,Mouse.y+fuzz),
-		getSightPolygon(Mouse.x-fuzz,Mouse.y),
-		getSightPolygon(Mouse.x,Mouse.y-fuzz)
-	];
+	var fuzzyRadius = 10;
+	var polygons = [getSightPolygon(Mouse.x,Mouse.y)];
+	for(var angle=0;angle<Math.PI*2;angle+=(Math.PI*2)/10){
+		var dx = Math.cos(angle)*fuzzyRadius;
+		var dy = Math.sin(angle)*fuzzyRadius;
+		polygons.push(getSightPolygon(Mouse.x+dx,Mouse.y+dy));
+	};
 
 	// DRAW AS A GIANT POLYGON
-	drawPolygon(polygons[1],ctx,"rgba(255,255,255,0.2)");
-	drawPolygon(polygons[2],ctx,"rgba(255,255,255,0.2)");
-	drawPolygon(polygons[3],ctx,"rgba(255,255,255,0.2)");
-	drawPolygon(polygons[4],ctx,"rgba(255,255,255,0.2)");
+	for(var i=1;i<polygons.length;i++){
+		drawPolygon(polygons[i],ctx,"rgba(255,255,255,0.2)");
+	}
 	drawPolygon(polygons[0],ctx,"#fff");
+
+	// Draw red dots
+	ctx.fillStyle = "#dd3838";
+	ctx.beginPath();
+    ctx.arc(Mouse.x, Mouse.y, 2, 0, 2*Math.PI, false);
+    ctx.fill();
+	for(var angle=0;angle<Math.PI*2;angle+=(Math.PI*2)/10){
+		var dx = Math.cos(angle)*fuzzyRadius;
+		var dy = Math.sin(angle)*fuzzyRadius;
+		ctx.beginPath();
+    	ctx.arc(Mouse.x+dx, Mouse.y+dy, 2, 0, 2*Math.PI, false);
+    	ctx.fill();
+    }
 
 }
 

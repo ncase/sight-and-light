@@ -5,22 +5,120 @@
 		body{
 			margin:0;
 			background: #eee;
+			font-family: sans-serif;
+			font-size: 20px;
+			font-weight: 100;
 		}
 		iframe{
 			border: none;
 			display: block;
-			margin: 20px auto;
+			margin: 20px auto 50px auto;
+		}
+		#content{
+			width:840px;
+			margin:40px auto 100px auto;
+		}
+		#footer{
+			background: #000;
+			height: 400px;
 		}
 		</style>
 	</head>
 	<body>
-		<iframe src="draft0.html" width="640" height="360"></iframe>
-		<iframe src="draft1.html" width="640" height="360"></iframe>
-		<iframe src="draft2.html" width="640" height="360"></iframe>
-		<iframe src="draft3.html" width="640" height="360"></iframe>
-		<iframe src="draft4.html" width="640" height="360"></iframe>
-		<iframe src="draft5.html" width="640" height="360"></iframe>
-		<iframe src="draft6.html" width="640" height="360"></iframe>
-		<iframe src="draft7.html" width="640" height="600"></iframe>
+		<div style="background:#000; padding:50px 0;">
+			<div style="text-align:center">
+				<div style="font-size:70px;letter-spacing:25px;height:75px;color:#fff">SIGHT & LIGHT</div>
+				<div style="font-size:27px;color:#333">how to create 2D visibility/shadow effects for your game</div>
+			</div>
+		</div>
+
+		<div id="content">
+
+			Hello there! Today, I will show you how to create something like this:
+			<br>
+			(move mouse around in the box below)
+
+			<iframe src="draft7.html" width="840" height="360"></iframe>
+			
+			This effect is used in my new open-source game, Nothing To Hide. (last day to support the project!)
+			But it's also found in many other games, such as Monaco or Gish.
+			And if this tutorial does its job... maybe your next game, too.
+
+			<br><br>
+			I will show you each step and mistake I actually made, as I learned how to create this effect.
+			First, I created some boilerplate code. The demo below just draws a bunch of line segments
+			and tracks your mouse position. (note: there are four line segments for the box's border)
+
+			<iframe src="draft0.html" width="640" height="360"></iframe>
+
+			This next step is the most math-y part. Don't worry, it's just algebra.
+			I project a ray onto the line segments, and find the first intersection.
+			<br><br>
+			Remember, a line can be described in parametric form like so:
+			<br>
+			Point + Direction*T
+			<br>
+			Infinite Line (-Infinity &lt; T &lt; Infinity), 
+			Ray (0 &lt; T &lt; Infinity),
+			and Line Segment (0 &lt; T &lt; 1)
+
+			<iframe src="draft1.html" width="640" height="360"></iframe>
+
+			Whew! Now that that's over with, let's have some fun!
+			I cast out 50 rays in all directions:
+
+			<iframe src="draft2.html" width="640" height="360"></iframe>
+
+			Then, I thought, I could just simply connect the dots, (where rays intersect with line segments)
+			and get a good visibility polygon. However, this is what it ended up looking like...
+
+			<iframe src="draft3.html" width="640" height="360"></iframe>
+
+			Darn. And it didn't matter even if I had 360 rays for 360 degrees, it still looked weird.
+			This was my biggest stumbling block, until I realized - I don't <i>have</i> to cast rays in all directions.
+			I only need to cast them towards <i>the ends of each line segment</i>.
+			<br><br>
+			For each (unique) line segment end point, I cast a ray directly towards it, plus two more rays offset by +/- 0.00001 radians.
+			The two extra rays are needed to hit the wall(s) behind any given segment corner.
+
+			<iframe src="draft4.html" width="640" height="360"></iframe>
+
+			Next, I sort the intersection points in order of their ray's angle.
+			This lets me simply connect the dots clockwise, and draw a smooth visibility polygon like this:
+
+			<iframe src="draft5.html" width="640" height="360"></iframe>
+
+			Finally! Something that actually looks decent. By drawing extra visibility polygons,
+			casting rays from a slightly offset position, I can create "fuzzy" shadows like the ones below.
+			The red dots show each of the 11 origin points - yes, there are 11 visibility polygons!
+
+			<iframe src="draft6.html" width="640" height="360"></iframe>
+
+			And just to top it all off, I drew these two images...
+			
+			<br><br>
+			<img src="foreground.png" width="420"/><img src="background.png" width="420"/>
+			<br><br>
+
+			...and blended them together, using the fuzzy shadows as an alpha mask.
+			I already showed you the creepy result of that at the top of this page.
+			So here is a different iteration, with <i>multiple</i> light sources.
+
+			<iframe src="draft8.html" width="840" height="360"></iframe>
+
+			Multiple light sources. Casting shadows. A giant laser bomb. Showing what your player/enemies can or can't see.
+			The 2D visibility/lighting effect can be very flexible, and with the right creative touch,
+			can add a lot of extra <i>oomph</i>* to your game.
+
+			<br><br>
+			<b>Let there be light!</b>
+
+			<br><br>
+			* totally a real technical term
+			
+		</div>
+
+		<div id="footer">
+		</div>
 	</body>
 </html>
