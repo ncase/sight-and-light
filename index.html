@@ -1,0 +1,224 @@
+<!doctype>
+<html>
+	<head>
+		<title>SIGHT & LIGHT - How to create 2D visibility/shadow effects for your game</title>
+		<style>
+		body{
+			margin:0;
+			background: #eee;
+			font-family: sans-serif;
+			font-size: 20px;
+			font-weight: 100;
+		}
+		iframe{
+			border: none;
+			display: block;
+			margin: 20px auto 50px auto;
+		}
+		#content{
+			width:840px;
+			margin:40px auto 100px auto;
+		}
+		#footer{
+			background: #000;
+			padding: 70px 0 100px 0;
+		}
+		#embedded{
+			border:0;
+			display:block;
+			margin:20px auto;
+		}
+		.code{
+			font-family:monospace;
+			color:#fff; font-weight:100; background:#333; border-radius:5px; padding:0 10px;
+		}
+		a{
+			color:#cc2727;
+		}
+		a:hover{
+			color:#ee3939;
+		}
+		</style>
+	</head>
+	<body>
+		<div style="background:#000; padding:50px 0;">
+			<div style="text-align:center">
+				<div style="font-size:70px;letter-spacing:25px;height:75px;color:#fff">SIGHT & LIGHT</div>
+				<div style="font-size:27px;color:#666">how to create 2D visibility/shadow effects for your game</div>
+			</div>
+		</div>
+
+		<div id="content">
+
+			Hello! Today, I will show you how to make something like this:<br>
+			(move your mouse around in the box below)
+
+			<iframe src="draft7.html" width="840" height="360"></iframe>
+			
+			This effect is used in my new open-source game,
+			<a href="http://NothingToHide.cc">Nothing To Hide. (today's the last day of our crowdfunding campaign!)</a>
+			It's also found in many other 2D games, such as Monaco, Gish,
+			and if this tutorial does its job... maybe your next game, too!
+
+			<br><br>
+			<img src="games.png"/>
+			<br><br>
+
+			I will show the steps & mistakes I personally made while learning how to create this effect.
+			First, some boilerplate code. The demo below just draws a bunch of line segments
+			and tracks your mouse position. (note: there are four line segments for the box's border)
+
+			<iframe src="draft0.html" width="640" height="360"></iframe>
+
+			Next is the most math-y step. Don't worry, it'll be a refreshing refresher in algebra.
+			<br><br>
+			
+			We need to find the closest intersection between the ray and all the line segments.
+			Any line can be written in parametric form as:
+			<span class="code">Point + Direction * T</span>
+			<br><br>
+
+			This gives us 4 equations describing the x & y components of a ray & line segment:<br>
+			<div class="code" style="padding:10px; margin:5px 0 20px 0">
+				Ray X = r_px+r_dx*T1<br>
+				Ray Y = r_py+r_dy*T1<br>
+				Segment X = s_px+s_dx*T2<br>
+				Segment Y = s_py+s_dy*T2
+			</div>
+
+			NOTE: Before we do anything else, check to make sure that the Ray & Segment aren't parallel, that is, that the directions aren't the same.
+			If they're parallel, there is no intersection. Alright, carry on.
+			<br><br>
+
+			If the ray & segment intersect, their X & Y components will be the same:
+			<div class="code" style="padding:10px; margin:5px 0 20px 0">
+				r_px+r_dx*T1 = s_px+s_dx*T2<br>
+				r_py+r_dy*T1 = s_py+s_dy*T2
+			</div>
+
+			We do a little symbol-shifting dance to solve for T1 & T2...
+
+			<div class="code" style="padding:10px; margin:5px 0 20px 0; font-size:16px">
+				
+				<span style="color:#888">// Isolate T1 for both equations, getting rid of T1</span><br>
+				T1 = (s_px+s_dx*T2-r_px)/r_dx = (s_py+s_dy*T2-r_py)/r_dy<br><br>
+
+				<span style="color:#888">// Multiply both sides by r_dx * r_dy</span><br>
+				s_px*r_dy + s_dx*T2*r_dy - r_px*r_dy = s_py*r_dx + s_dy*T2*r_dx - r_py*r_dx<br><br>
+
+				<span style="color:#888">// Solve for T2!</span><br>
+				T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)<br><br>
+
+				<span style="color:#888">// Plug the value of T2 to get T1</span><br>
+				T1 = (s_px+s_dx*T2-r_px)/r_dx
+
+			</div>
+
+			Make sure that <span class="code">T1&gt;0</span> and <span class="code">0&lt;T2&lt;1</span>.
+			If they aren't, then the supposed intersection is not on the ray/segment,
+			and there is no intersection after all. But if they are, great! You've found an intersect.
+			Now just loop through all other line segments with the same ray,
+			in order to find the closest intersection. (It will be the one with the lowest T1 value)
+			<br><br>
+
+			Here's what all that math looks like: (move your mouse over the box)
+
+			<iframe src="draft1.html" width="640" height="360"></iframe>
+
+			Whew! Now that that's over with, let's have some fun!
+			I cast out 50 rays in all directions:
+
+			<iframe src="draft2.html" width="640" height="360"></iframe>
+
+			Then, I thought, I could just simply connect the dots, where rays intersect with line segments,
+			and get a good visibility polygon. However, this is what it ended up looking like...
+
+			<iframe src="draft3.html" width="640" height="360"></iframe>
+
+			Darn. And it didn't matter even if I had 360 rays for 360 degrees, it still looked jittery.
+			This was my biggest stumbling block, until I realized - I don't <i>have</i> to cast rays in all directions.
+			I only need to cast them towards <i>the ends of each line segment</i>.
+			<br><br>
+			For each (unique) line segment end point, I cast a ray directly towards it, plus two more rays offset by +/- 0.00001 radians.
+			The two extra rays are needed to hit the wall(s) behind any given segment corner.
+
+			<iframe src="draft4.html" width="640" height="360"></iframe>
+
+			Next, I sort the intersection points in order of their ray's angle.
+			This lets me simply connect the dots clockwise, and draw a smooth visibility polygon like this:
+
+			<iframe src="draft5.html" width="640" height="360"></iframe>
+
+			Finally! Something that actually looks decent. By drawing extra visibility polygons,
+			casting rays from a slightly offset position, I can create "fuzzy" shadows like the ones below.
+			The red dots show each of the 11 origin points - yes, there are 11 visibility polygons!
+
+			<iframe src="draft6.html" width="640" height="360"></iframe>
+
+			And just to top it all off, I drew these two images...
+			
+			<br><br>
+			<img src="foreground.png" width="415"/><img src="background.png" width="415" style="margin-left:10px"/>
+			<br><br>
+
+			...and blended them together, using the fuzzy shadows as an alpha mask.
+			I already showed you the creepy result of that at the top of this page,
+			so here is a different iteration, with <i>multiple</i> light sources.
+
+			<iframe src="draft8.html" width="840" height="360"></iframe>
+
+			Multiple light sources. Casting shadows. A giant laser bomb. Showing what your player/enemies can or can't see.
+			The 2D visibility/lighting effect can be very flexible, and with the right creative touch,
+			can add a lot of extra <i>oomph</i>* to your game.
+
+			<br><br>
+			<b style="letter-spacing:5px">LET THERE BE LIGHT</b>
+
+			<br><br>
+			* totally a real technical term
+
+			<br><br><br>
+			<hr style="border:none; border-top:2px dashed #bbb">
+			<br><br>
+			<div style="text-align:center">
+				<a href="https://github.com/ncase/sight-and-light">Fork this on Github</a>
+				||
+				<a target="_blank" href="https://twitter.com/share?via=ncasenmare&url=http%3A%2F%2Fncase.github.io%2Fsight-and-light&text=Sight%20%26%20Light%20-%20How%20to%20create%202D%20visibility%2Fshadow%20effects%20for%20your%20game">Share on Twitter</a>
+				||
+				<a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fncase.github.io%2Fsight-and-light&t=Sight%20%26%20Light%20-%20How%20to%20create%202D%20visibility%2Fshadow%20effects%20for%20your%20game">Share on Facebook</a>
+				||
+				<a target="_blank" href="http://www.reddit.com/submit?url=http%3A%2F%2Fncase.github.io%2Fsight-and-light&title=Sight%20%26%20Light%20-%20How%20to%20create%202D%20visibility%2Fshadow%20effects%20for%20your%20game">Share on Reddit</a>
+			</div>
+			
+		</div>
+
+		<!-- Footer & CTA to Nothing To Hide -->
+		<div id="footer">
+			<div style="color:#fff; font-size:40px; height:60px; letter-spacing:13px; text-align:center">
+				SUPPORT AN OPEN SOURCE GAME!
+			</div>
+			<div style="font-family:Helvetica, Arial, sans-serif; color:#555; font-size:20px; width:1000px; margin:0 auto">
+				<a href="http://NothingToHide.cc">Nothing To Hide</a>, 
+				the game I made this visibility effect for, is also entirely uncopyrighted and open-sourced.
+				If you liked this tutorial, please support Nothing To Hide's fundraiser so we can keep making open art & open code!
+				10% of all donations go to groups like the EFF, Mozilla, and Creative Commons. Thank you! :)
+			</div>
+			<iframe id="embedded" src="https://back.nothingtohide.cc/embed?sametab=true" width="1000" height="70" scrolling="no"></iframe>
+			<br>
+			<div style="font-family:Helvetica, Arial, sans-serif; color:#ddd; text-align:center; font-size:25px; font-weight:lighter; letter-spacing:5px">
+				catch me at
+				<a href="https://twitter.com/ncasenmare">@ncasenmare</a>
+				or
+				<script>document.write('<'+'a'+' '+'h'+'r'+'e'+'f'+'='+"'"+'m'+'a'+'i'+'l'+'&'+'#'+'1'+'1'+'6'+';'+'o'+'&'+'#'+'5'+'8'+';'+
+'n'+'@'+'&'+'#'+'1'+'1'+'0'+';'+'&'+'#'+'9'+'9'+';'+'&'+
+'#'+'9'+'7'+';'+'s'+'e'+'&'+'#'+'4'+'6'+';'+'me'+"'"+'>'+'n'+'&'+'#'+'6'+'4'+';'+'n'+'c'+
+'a'+'&'+'#'+'1'+'1'+'5'+';'+'e'+'&'+'#'+'4'+'6'+';'+'me'+'<'+'/'+'a'+'>');</script>
+			</div>
+		</div>
+
+		<!-- FORK ME -->
+		<style>#forkongithub a{background:#aa1616;color:#fff;text-decoration:none;font-family:arial, sans-serif;text-align:center;font-weight:bold;padding:5px 40px;font-size:1rem;line-height:2rem;position:relative;transition:0.5s;}#forkongithub a:hover{background:#cc2727;color:#fff;}#forkongithub a::before,#forkongithub a::after{content:"";width:100%;display:block;position:absolute;top:1px;left:0;height:1px;background:#fff;}#forkongithub a::after{bottom:1px;top:auto;}@media screen and (min-width:0px){#forkongithub{position:absolute;display:block;top:0;right:0;width:200px;overflow:hidden;height:200px;}#forkongithub a{width:200px;position:absolute;top:60px;right:-60px;transform:rotate(45deg);-webkit-transform:rotate(45deg);box-shadow:4px 4px 10px rgba(0,0,0,0.0);}}</style>
+		<span id="forkongithub"><a href="https://github.com/ncase/sight-and-light">Fork me on GitHub</a></span>
+
+	</body>
+</html>
