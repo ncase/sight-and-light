@@ -1,6 +1,7 @@
 <!doctype>
 <html>
 	<head>
+		<title>SIGHT & LIGHT - How to create 2D visibility/shadow effects for your game</title>
 		<style>
 		body{
 			margin:0;
@@ -22,13 +23,17 @@
 			background: #000;
 			height: 400px;
 		}
+		.code{
+			font-family:monospace;
+			color:#fff; font-weight:100; background:#333; border-radius:5px; padding:0 10px;
+		}
 		</style>
 	</head>
 	<body>
 		<div style="background:#000; padding:50px 0;">
 			<div style="text-align:center">
 				<div style="font-size:70px;letter-spacing:25px;height:75px;color:#fff">SIGHT & LIGHT</div>
-				<div style="font-size:27px;color:#333">how to create 2D visibility/shadow effects for your game</div>
+				<div style="font-size:27px;color:#666">how to create 2D visibility/shadow effects for your game</div>
 			</div>
 		</div>
 
@@ -51,16 +56,58 @@
 
 			<iframe src="draft0.html" width="640" height="360"></iframe>
 
-			This next step is the most math-y part. Don't worry, it's just algebra.
-			I project a ray onto the line segments, and find the first intersection.
+			Next is the most math-y step. Don't worry, it'll be a refreshing refresher in algebra.
 			<br><br>
-			Remember, a line can be described in parametric form like so:
-			<br>
-			Point + Direction*T
-			<br>
-			Infinite Line (-Infinity &lt; T &lt; Infinity), 
-			Ray (0 &lt; T &lt; Infinity),
-			and Line Segment (0 &lt; T &lt; 1)
+			
+			We need to find the closest intersection between the ray and all the line segments.
+			A line/ray/segment can be written in parametric form as:
+			<span class="code">Point + Direction * T</span>
+			<br><br>
+
+			This gives us 4 equations describing the x & y components of a ray & line segment:<br>
+			<div class="code" style="padding:10px; margin:5px 0 20px 0">
+				Ray X = r_px+r_dx*T1<br>
+				Ray Y = r_py+r_dy*T1<br>
+				Segment X = s_px+s_dx*T2<br>
+				Segment Y = s_py+s_dy*T2
+			</div>
+
+			NOTE: Before we do anything else, check to make sure that the Ray & Segment aren't parallel, that is, that the directions aren't the same.
+			If they're parallel, there is no intersection. Alright, carry on.
+			<br><br>
+
+			If the ray & segment intersect, their X & Y components will be the same:
+			<div class="code" style="padding:10px; margin:5px 0 20px 0">
+				r_px+r_dx*T1 = s_px+s_dx*T2<br>
+				r_py+r_dy*T1 = s_py+s_dy*T2
+			</div>
+
+			We do a little symbol-shifting dance to solve for T1 & T2...
+
+			<div class="code" style="padding:10px; margin:5px 0 20px 0; font-size:16px">
+				
+				<span style="color:#888">// Isolate T1 for both equations, getting rid of T1</span><br>
+				T1 = (s_px+s_dx*T2-r_px)/r_dx = (s_py+s_dy*T2-r_py)/r_dy<br><br>
+
+				<span style="color:#888">// Multiply both sides by r_dx * r_dy</span><br>
+				s_px*r_dy + s_dx*T2*r_dy - r_px*r_dy = s_py*r_dx + s_dy*T2*r_dx - r_py*r_dx<br><br>
+
+				<span style="color:#888">// Solve for T2!</span><br>
+				T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)<br><br>
+
+				<span style="color:#888">// Plug the value of T2 to get T1</span><br>
+				T1 = (s_px+s_dx*T2-r_px)/r_dx
+
+			</div>
+
+			Make sure that <span class="code">T1&gt;0</span> and <span class="code">0&lt;T2&lt;1</span>.
+			If they aren't, then the supposed intersection is not on the ray/segment,
+			and there is no intersection after all. But if they are, great! You've found an intersect.
+			Now just loop through all other line segments with the same ray,
+			in order to find the closest intersection. (It will be the one with the lowest T1 value)
+			<br><br>
+
+			Here's what all that math looks like: (move your mouse over the box)
 
 			<iframe src="draft1.html" width="640" height="360"></iframe>
 
@@ -69,12 +116,12 @@
 
 			<iframe src="draft2.html" width="640" height="360"></iframe>
 
-			Then, I thought, I could just simply connect the dots, (where rays intersect with line segments)
+			Then, I thought, I could just simply connect the dots, where rays intersect with line segments,
 			and get a good visibility polygon. However, this is what it ended up looking like...
 
 			<iframe src="draft3.html" width="640" height="360"></iframe>
 
-			Darn. And it didn't matter even if I had 360 rays for 360 degrees, it still looked weird.
+			Darn. And it didn't matter even if I had 360 rays for 360 degrees, it still looked jittery.
 			This was my biggest stumbling block, until I realized - I don't <i>have</i> to cast rays in all directions.
 			I only need to cast them towards <i>the ends of each line segment</i>.
 			<br><br>
@@ -101,8 +148,8 @@
 			<br><br>
 
 			...and blended them together, using the fuzzy shadows as an alpha mask.
-			I already showed you the creepy result of that at the top of this page.
-			So here is a different iteration, with <i>multiple</i> light sources.
+			I already showed you the creepy result of that at the top of this page,
+			so here is a different iteration, with <i>multiple</i> light sources.
 
 			<iframe src="draft8.html" width="840" height="360"></iframe>
 

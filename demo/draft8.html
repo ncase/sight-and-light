@@ -145,7 +145,6 @@ function getSightPolygon(sightX,sightY){
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var foreground = new Image();
-foreground.src = "foreground.png";
 function draw(){
 
 	// Clear canvas
@@ -265,7 +264,10 @@ function drawLoop(){
     }
 }
 window.onload = function(){
-	drawLoop();
+	foreground.onload = function(){
+		drawLoop();
+	};
+	foreground.src = "foreground.png";
 };
 
 // MOUSE	

@@ -22,13 +22,13 @@
 // Find intersection of RAY & SEGMENT
 function getIntersection(ray,segment){
 
-	// RAY in parametric: Point + Delta*T1
+	// RAY in parametric: Point + Direction*T1
 	var r_px = ray.a.x;
 	var r_py = ray.a.y;
 	var r_dx = ray.b.x-ray.a.x;
 	var r_dy = ray.b.y-ray.a.y;
 
-	// SEGMENT in parametric: Point + Delta*T2
+	// SEGMENT in parametric: Point + Direction*T2
 	var s_px = segment.a.x;
 	var s_py = segment.a.y;
 	var s_dx = segment.b.x-segment.a.x;
@@ -37,8 +37,7 @@ function getIntersection(ray,segment){
 	// Are they parallel? If so, no intersect
 	var r_mag = Math.sqrt(r_dx*r_dx+r_dy*r_dy);
 	var s_mag = Math.sqrt(s_dx*s_dx+s_dy*s_dy);
-	if(r_dx/r_mag==s_dx/s_mag && r_dy/r_mag==s_dy/s_mag){
-		// Unit vectors are the same.
+	if(r_dx/r_mag==s_dx/s_mag && r_dy/r_mag==s_dy/s_mag){ // Directions are the same.
 		return null;
 	}
 
