@@ -17,6 +17,7 @@
 		<canvas id="canvas" width="840" height="360"></canvas>
 	</body>
 </html>
+<script src="input.js"></script>
 <script>
 
 // Find intersection of RAY & SEGMENT
@@ -262,10 +263,9 @@ var Mouse = {
 	x: canvas.width/2,
 	y: canvas.height/2
 };
-canvas.onmousemove = function(event){	
-	Mouse.x = event.clientX;
-	Mouse.y = event.clientY;
+handleInput(canvas, function(mouse) {
+	Mouse = mouse;
 	updateCanvas = true;
-};
+});
 
 </script>
