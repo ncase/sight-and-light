@@ -41,13 +41,18 @@ function getIntersection(ray,segment){
 		return null;
 	}
 
-	// SOLVE FOR T1 & T2
+	// SOLVE FOR T2
 	// r_px+r_dx*T1 = s_px+s_dx*T2 && r_py+r_dy*T1 = s_py+s_dy*T2
 	// ==> T1 = (s_px+s_dx*T2-r_px)/r_dx = (s_py+s_dy*T2-r_py)/r_dy
 	// ==> s_px*r_dy + s_dx*T2*r_dy - r_px*r_dy = s_py*r_dx + s_dy*T2*r_dx - r_py*r_dx
 	// ==> T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
 	var T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx);
-	var T1 = (s_px+s_dx*T2-r_px)/r_dx;
+	// SOLVE FOR T1
+	// r_px+r_dx*T1 = s_px+s_dx*T2 && r_py+r_dy*T1 = s_py+s_dy*T2
+	// ==> T2 = (r_px+r_dx*T1-s_px)/s_dx = (r_py+r_dy*T1-s_py)/s_dy
+	// ==> r_px*s_dy + r_dx*T1*s_dy - s_px*s_dy = r_py*s_dx + r_dy*T1*s_dx - s_py*s_dx
+	// ==> T1 = (s_dx*(r_py-s_py) + s_dy*(s_px-r_px))/(r_dx*s_dy - r_dy*s_dx)
+	var T1 = (s_dx*(r_py-s_py) + s_dy*(s_px-r_px))/(r_dx*s_dy - r_dy*s_dx);
 
 	// Must be within parametic whatevers for RAY/SEGMENT
 	if(T1<0) return null;
